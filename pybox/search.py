@@ -1,3 +1,4 @@
+import argparse
 import elasticsearch
 
 
@@ -10,9 +11,9 @@ class SimpleSearch(object):
         # single word query:
         # results = es.search(index=author, q=query, size=numResults)
         # phrase match query:
-        results = self.es.search(
-            index=self.index, body={"size": size, "query": {"match": {"content": {"query": query}}}}
-        )
+        # queryjson = {"match": {"content": {"query": query}}}
+        queryjson2 = {"match_phrase": {"content": {"query": query}}}
+        results = self.es.search(index=self.index, body={"size": size, "query": queryjson2})
         hit_count = len(results["hits"]["hits"])
         if hit_count > 0:
             return self.__pretty(results)
@@ -28,4 +29,9 @@ class SimpleSearch(object):
 
 if __name__ == "__main__":
     search = SimpleSearch("html")
-    print(search.search("conventional wisdom"))
+    parser = argparse.ArgumentParser(description="SimpleSearch")
+    parser.add_argument("--q", dest="query", type=str, help="query", required=True)
+    parser.add_argument("--l", dest="limit", default=5, type=int, help="Max no of results")
+
+    args = parser.parse_args()
+    print(search.search(args.query, args.limit))
